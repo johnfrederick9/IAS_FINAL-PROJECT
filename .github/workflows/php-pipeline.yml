@@ -34,10 +34,12 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.6
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /var/www/html
-            git pull origin main
-            php artisan migrate --force
+            host: ${{ secrets.SSH_HOST }}
+            username: ${{ secrets.SSH_USER }}
+            key: ${{ secrets.SSH_PRIVATE_KEY }}
+            debug: true
+            script: |
+                cd /var/www/html
+                git pull origin main
+                php artisan migrate --force
+        
