@@ -1,0 +1,57 @@
+name: PHP CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main   # Trigger pipeline on pushes to the 'main' branch
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up PHP
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'       # Specify your PHP version
+          extensions: mbstring     # Add required PHP extensions
+          ini-values: post_max_size=256M
+          tools: composer          # Install Composer
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: composer install
+
+      # Step 4: Run tests
+      - name: Run tests
+        run: vendor/bin/phpunit   # Adjust for your test framework
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build  # Only run deploy if build succeeds
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Deploy to the server (example: FTP or SSH)
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.SECRET_SSH_HOST }}
+          username: ${{ secrets.SECRET_SSH_USER }}
+          key: ${{ secrets.SECRET_SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/html
+            git pull origin main
+            composer install
+            php artisan migrate --force
